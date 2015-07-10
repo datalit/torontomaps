@@ -1,0 +1,70 @@
+---
+title: "Diabetes Prevalence Choropleth Map by Neighbourhood in Toronto"
+author: "Xu Fei"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This is an experiment of implementing the [Wellbeing Toronto map](map.toronto.ca/wellbeing) using R.
+
+## Diabetes data
+
+The diabetes prevalence values are calculated by as "Percent of People With diabetes, Both sexes, Age-Adjusted". The values are taken from the [**The Wellbeing Toronto Heath Dataset**](http://opendata.toronto.ca/social.development/wellbeing/WB-Health.xlsx). The explanation on how the data were collected is [here](http://www.torontohealthprofiles.ca/a_documents/aboutTheData/3_1_AboutTheData_AdultHealthDisease_2006.pdf).
+
+Since this file has multiple sheets and not formatted for machines, we copied the data sheet of 2008 to "./data/WB-Health-2008.csv" for later use. 
+
+## Polygon data
+
+First we need to download the polygon data file in the WGS84 Coordinates Reference System. The block of code below does the downloading and unzipping.
+```
+fileurl <- "http://opendata.toronto.ca/gcc/neighbourhoods_planning_areas_wgs84.zip"
+download.file(fileurl, './data/neighbourhoods_planning_areas_wgs84.zip', method ='curl')
+unzip(zipfile = "./data/neighbourhoods_planning_areas_wgs84.zip", exdir = "./")
+```
+
+The following code basically reads the shape file and diabetes data file into 2 R objects. Then we merged them into 1 file to display using Leaflet. Finally we configured the choropleth map using continuous colour gradient.
+
+```{r, results="hide"}
+library(rgdal)
+```
+```{r}
+library(leaflet)
+TOhood <- readOGR("./data", layer = "NEIGHBORHOODS_WGS84", verbose = FALSE)
+TOhood.data <- read.csv("./data/WB-Health-2008.csv")
+TOhood@data$AREA_S_CD <- as.integer(TOhood@data$AREA_S_CD)
+TOhood2 <- merge(TOhood, TOhood.data, by.x = "AREA_S_CD", by.y = "Neighbourhood.Id", sort = FALSE)
+pal <- colorNumeric(palette = "Blues",
+  domain = TOhood2[['Diabetes.Prevalence']]
+  )
+TOhood_popup <- paste0("<strong>Neighbourhood: </strong>",
+                       TOhood2@data$AREA_NAME,
+                       "<br><strong>Diabetes Prevalence: </strong>",
+                       TOhood2[['Diabetes.Prevalence']]
+                       )
+stamen_tiles <- "http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png"
+stamen_attribution <- 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+
+TOhoodMap <- leaflet(data = TOhood2) %>%
+  addTiles(urlTemplate = stamen_tiles,
+           attribution = stamen_attribution) %>%
+  setView(lng=-79.38318, lat=43.65323, zoom = 11) %>%
+  addPolygons(fillColor =
+                ~pal(TOhood2[['Diabetes.Prevalence']]), 
+                fillOpacity = 0.7, 
+                color = "#BDBDC3", 
+                weight = 1, 
+                popup = TOhood_popup) %>%
+  addLegend("bottomright", 
+            pal = pal, 
+            values =~Diabetes.Prevalence,
+            title = "Diabetes Prevalence",
+            opacity = 1
+            )
+```
+
+Now if you click on each neighbourhood in the map below, you will be able to see the name of the neighbourhood and diabetes prevalence in the popup window!
+
+```{r, echo=FALSE}
+TOhoodMap  # Print the map
+```
+
