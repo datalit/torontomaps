@@ -1,6 +1,6 @@
 ---
 title: "Diabetes Prevalence Choropleth Map by Neighbourhood in Toronto"
-author: "Xu Fei"
+author: "[Xu Fei](https://ca.linkedin.com/in/xufei1)"
 date: "`r Sys.Date()`"
 output: html_document
 ---
