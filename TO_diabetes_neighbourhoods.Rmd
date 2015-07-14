@@ -5,8 +5,6 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-This is an experiment of implementing the [Wellbeing Toronto map](map.toronto.ca/wellbeing) using R. Please visit http://datalit.github.io/torontomaps/ to see the interactive map.
-
 ## Diabetes data
 
 The diabetes prevalence values are calculated by as "Percent of People With diabetes, Both sexes, Age-Adjusted". The values are taken from the [**The Wellbeing Toronto Heath Dataset**](http://opendata.toronto.ca/social.development/wellbeing/WB-Health.xlsx). The explanation on how the data were collected is [here](http://www.torontohealthprofiles.ca/a_documents/aboutTheData/3_1_AboutTheData_AdultHealthDisease_2006.pdf).
